@@ -1,5 +1,5 @@
 /**
- *contains the redis client
+ * Redis client
  */
 const redis = require('redis');
 import { createClient } from 'redis';
@@ -48,7 +48,7 @@ class RedisClient {
 	 * @param {string} key 
 	 * @param {string} value 
 	 * @param {int} time 
-	 * @returns 
+	 * @returns {string} value
 	 */
 	async set(key, value, time){
 		var setAsync = util.promisify(this.client.set).bind(this.client);
@@ -64,7 +64,7 @@ class RedisClient {
 	 * that takes a string key as argument and remove the value in Redis
 	 * 		for this key
 	 * @param {string} key 
-	 * @returns 
+	 * @returns {string} null
 	 */
 	async del(key) {
 		var delAsync = util.promisify(this.client.del).bind(this.client);
