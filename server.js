@@ -4,8 +4,9 @@
 const express = require('express');
 const app  = express();
 const port = process.env.PORT || 5000;
+import router from './routes/index';
 
-app.use(express.static(__dirname + '/routes/index.js'))
+router(app);
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`)

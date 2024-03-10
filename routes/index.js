@@ -4,7 +4,8 @@ import AppController from '../controllers/AppController';
 
 const router = (app) => {
     const route = express.Router();
-    app.use('/', route)
+    app.use(express.json());
+    app.use('/', route);
 
     route.get('/status', (request, response) => AppController.getStatus(request, response));
     route.get('/stats', (request, response) => AppController.getStats(request, response));
