@@ -1,12 +1,13 @@
 /**
  * Redis client
  */
-import { createClient } from 'redis';
-import { promisify } from 'util';
+const redis = require('redis');
+const createClient = require('redis');
+const { promisify } = require('util');
 
 class RedisClient {
   constructor() {
-    this.client = createClient();
+    this.client = redis.createClient();
     this.clientConnected = true;
     this.getAsync = promisify(this.client.get).bind(this.client);
 
@@ -60,5 +61,5 @@ class RedisClient {
   }
 }
 
-export const redisClient = new RedisClient();
-export default redisClient;
+const redisClient = new RedisClient();
+module.exports = redisClient;

@@ -1,7 +1,7 @@
 /**
  * An express server client
  */
-import router from './routes/index';
+const router = require('./routes/index')
 
 const express = require('express');
 

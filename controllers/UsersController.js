@@ -1,11 +1,16 @@
 /**
  * Endpoint definitions for users
  */
-import sha1 from 'sha1';
-import dbClient from '../utils/db';
-import RedisClient from '../utils/redis';
+const sha1 = require('sha1');
+const dbClient = require('../utils/db');
+const redisClient = require('../utils/redis');
+
+const { ObjectId } = require('mongodb');
 
 class UsersController{
+    /**
+     * Create a new user in the DB
+     */
     static async postNew(request, response) {
         const userEmail = request.body.email;
         if (!userEmail){
@@ -16,8 +21,7 @@ class UsersController{
         if (!userPwd){
             return response.status(400).send({error: 'Missing password'});
         }
-        const emailCheck = await dbClient.db
-          .collection('users')
+        const emailCheck = await dbClient.db.collection('users')
           .findOne({email: userEmail});
         if (emailCheck){
             return response.status(400).send({error:  "Already exists"})
@@ -29,6 +33,28 @@ class UsersController{
           .insertOne({email: userEmail, password: shaPassword});
 
         return response.status(201).send({id: result.insertedId, email: userEmail});
+    }
+    /**
+     * Retrieves the user based on the token
+     */
+    static async getMe(request, response) {
+        const token = request.header('X-Token') || null;
+        if (!token) {
+            return response.status(401).send({ error: 'Unauthorized' });
+        }
+        const redisToken = await redisClient.get(`auth_${token}`);
+        if (!redisToken) {
+            return response.status(401).send({ error: 'Unauthorized' });
+        }
+
+        const user = await dbClient.db.collection('users')
+          .findOne({_id: ObjectId(redisToken) });
+        if(!user) {
+            return response.status(401).send({error: 'Unauthorized'});
+        }
+
+        delete user.password;
+        return response.status(200).send({ id: user._id, email: user.email });
     }
 }
 

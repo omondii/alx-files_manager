@@ -1,8 +1,8 @@
 /**
  * Endpoint definitions
  */
-import dbClient from '../utils/db';
-import RedisClient from '../utils/redis';
+const dbClient = require('../utils/db');
+const RedisClient = require('../utils/redis');
 
 class AppController {
   static getStatus(request, response) {

@@ -1,8 +1,9 @@
 /**
  * Express server controller
  */
-import AppController from '../controllers/AppController';
-import UsersController from '../controllers/UsersController';
+const AppController = require('../controllers/AppController');
+const UsersController = require('../controllers/UsersController');
+const AuthController = require('../controllers/AuthController');
 
 const express = require('express');
 
@@ -14,6 +15,9 @@ const router = (app) => {
   route.get('/status', (request, response) => AppController.getStatus(request, response));
   route.get('/stats', (request, response) => AppController.getStats(request, response));
   route.post('/users', (request, response) => UsersController.postNew(request, response));
+  route.get('/connect', (request, response) => AuthController.getConnect(request, response));
+  route.get('disconnect', (request, response) => AuthController.getDisconnect(request, response));
+  route.get('/users/me', (request, response) => UsersController.getMe(request, response));
 };
 
-export default router;
+module.exports = router;
