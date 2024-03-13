@@ -20,6 +20,8 @@ const router = (app) => {
   route.get('disconnect', (request, response) => AuthController.getDisconnect(request, response));
   route.get('/users/me', (request, response) => UsersController.getMe(request, response));
   route.post('/files', (request, response) => FilesController.postUpload(request, response));
+  route.get('/files/:id', (request, response) => FilesController.getShow(request, response));
+  route.get('/files', (request, response) => FilesController.getIndex(request, response));
 };
 
 module.exports = router;

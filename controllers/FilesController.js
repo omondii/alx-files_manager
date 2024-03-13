@@ -129,7 +129,7 @@ class FilesController {
     }
     const fileId = request.params.id || '';
     const file = await dbClient.db.collection('files')
-      .findOne({ _id: ObjectId(fileId) });
+      .findOne({ _id: ObjectId(fileId), userId: ObjectId(userId) });
     if (!file) {
       return response.status(400).send({ error: 'Not found' });
     }
@@ -162,22 +162,19 @@ class FilesController {
     if (!userSearch) {
       return response.status(401).send({ error: 'Unauthorized' });
     }
-    const parentId = request.query.parentId || 0;
-    const pagination = request.query.page || 0;
+    const { parentId, page } = request.query
+    const parentFolderId = parentId !== 0 ? 0 : parentId;
 
-    const aggregationMatch = { $and: [{ parentId }] };
-    let aggregatedData = [
-      { $match: aggregationMatch },
-      { $skip: pagination * 20 },
-      { $limit: 20 },
-    ];
-    if (parentId === 0) {
-      aggregatedData = [{ $skip: pagination * 20 }, { $limit: 20 }];
-    }
-    const files = await dbClient.db.collection('files').aggregate(aggregatedData);
-    const filesList = [];
-    await files.forEach((item) => {
-      const Item = {
+    // Pagination settings
+    const itemsPerPage = 20;
+    const skip = page ? parseInt(page) * itemsPerPage : 0;
+
+    const allFiles = await dbClient.db.collection('files')
+      .find({ userId: ObjectId(userSearch._id), parentId: parentFolderId})
+        .skip(skip).limit(itemsPerPage)
+    const allFilesList = []
+    await allFiles.forEach((item) => {
+      const Items = {
         id: item._id,
         userId: item.userId,
         name: item.name,
@@ -185,9 +182,9 @@ class FilesController {
         isPublic: item.isPublic,
         parentId: item.parentId,
       };
-      filesList.push(Item);
+      allFilesList.push(Items);
     });
-    return response.send(filesList);
+    return response.send(allFilesList)
   }
 }
 
