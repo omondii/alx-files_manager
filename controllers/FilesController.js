@@ -108,5 +108,87 @@ class FilesController {
       parentId: dbFile.parentId,
     });
   }
+
+  /**
+   * Retrieves a file document using its given id
+   */
+  static async getShow(request, response) {
+    const token = request.header('X-Token') || null;
+    if (!token) {
+      return response.status(401).send({ error: 'Unauthorized' });
+    }
+    const redisToken = await redisClient.get(`auth_${token}`);
+    if (!redisToken) {
+      return response.status(401).send({ error: 'Unauthorized' });
+    }
+
+    const userSearch = await dbClient.db.collection('users')
+      .findOne({ _id: ObjectId(redisToken) });
+    if (!userSearch) {
+      return response.status(401).send({ error: 'Unauthorized' });
+    }
+    const fileId = request.params.id || '';
+    const file = await dbClient.db.collection('files')
+      .findOne({ _id: ObjectId(fileId) });
+    if (!file) {
+      return response.status(400).send({ error: 'Not found' });
+    }
+    return response.send({
+      id: file._id,
+      userId: file.userId,
+      name: file.name,
+      type: file.type,
+      isPublic: file.isPublic,
+      parentId: file.parentId,
+    });
+  }
+
+  /**
+   * Retrieves all user file docs with a specific parentId;
+   * with pagination
+   */
+  static async getIndex(request, response) {
+    const token = request.header('X-Token') || null;
+    if (!token) {
+      return response.status(401).send({ error: 'Unauthorized' });
+    }
+    const redisToken = await redisClient.get(`auth_${token}`);
+    if (!redisToken) {
+      return response.status(401).send({ error: 'Unauthorized' });
+    }
+
+    const userSearch = await dbClient.db.collection('users')
+      .findOne({ _id: ObjectId(redisToken) });
+    if (!userSearch) {
+      return response.status(401).send({ error: 'Unauthorized' });
+    }
+    const parentId = request.query.parentId || 0;
+    const pagination = request.query.page || 0;
+
+    const aggregationMatch = { $and: [{ parentId }] };
+    let aggregatedData = [
+      { $match: aggregationMatch },
+      { $skip: pagination * 20 },
+      { $limit: 20 },
+    ];
+    if (parentId === 0) {
+      aggregatedData = [{ $skip: pagination * 20 }, { $limit: 20 }];
+    }
+    const files = await dbClient.db.collection('files').aggregate(aggregatedData);
+    const filesList = [];
+    await files.forEach((item) => {
+      const Item = {
+        id: item._id,
+        userId: item.userId,
+        name: item.name,
+        type: item.type,
+        isPublic: item.isPublic,
+        parentId: item.parentId,
+      };
+      filesList.push(Item);
+    });
+    return response.send(filesList);
+  }
 }
+
 module.exports = FilesController;

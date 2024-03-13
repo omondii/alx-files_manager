@@ -5,6 +5,9 @@ const dbClient = require('../utils/db');
 const RedisClient = require('../utils/redis');
 
 class AppController {
+  /**
+   * Checks and returns the connectivity status of redis and mongo
+   */
   static getStatus(request, response) {
     const data = {
       redis: RedisClient.isAlive(),
