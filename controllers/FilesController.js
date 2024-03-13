@@ -1,7 +1,6 @@
 /**
  * Files CRUD endpoints
  */
-const Bull = require('bull');
 const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
@@ -24,7 +23,6 @@ class FilesController {
       return response.status(401).send({ error: 'Unauthorized' });
     }
 
-    const fileQueue = new Bull('Queue');
     const user = await dbClient.db.collection('users')
       .findOne({ _id: ObjectId(redisToken) });
     if (!user) {
@@ -93,12 +91,6 @@ class FilesController {
     dbFile.localPath = filePath;
     await dbClient.db.collection('files').insertOne(dbFile);
 
-    // Add to redis queue using instantiated var
-
-    fileQueue.add({
-      userId: dbFile.userId,
-      fileId: dbFile._id,
-    });
 
     return response.status(201).send({
       id: dbFile._id,
