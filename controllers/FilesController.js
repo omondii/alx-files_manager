@@ -162,28 +162,24 @@ class FilesController {
     if (!userSearch) {
       return response.status(401).send({ error: 'Unauthorized' });
     }
-    const { parentId, page } = request.query
-    const parentFolderId = parentId !== 0 ? 0 : parentId;
+    const { parentId, page } = request.query;
+    const parentFolderId = parentId ? parseInt(parentId): 0;
 
     // Pagination settings
     const itemsPerPage = 20;
     const skip = page ? parseInt(page) * itemsPerPage : 0;
 
     const allFiles = await dbClient.db.collection('files')
-      .find({ userId: ObjectId(userSearch._id), parentId: parentFolderId})
-        .skip(skip).limit(itemsPerPage)
-    const allFilesList = []
-    await allFiles.forEach((item) => {
-      const Items = {
-        id: item._id,
-        userId: item.userId,
-        name: item.name,
-        type: item.type,
-        isPublic: item.isPublic,
-        parentId: item.parentId,
-      };
-      allFilesList.push(Items);
-    });
+      .find({ userId: ObjectId(userSearch._id) })
+        .skip(skip).limit(itemsPerPage).toArray();
+    const allFilesList = allFiles.map(item => ({
+      id: item._id,
+      userId: item.userId,
+      name: item.name,
+      type: item.type,
+      isPublic: item.isPublic,
+      parentId: item.parentId,
+    }));
     return response.send(allFilesList)
   }
 }
