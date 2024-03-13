@@ -129,7 +129,7 @@ class FilesController {
     }
     const fileId = request.params.id || '';
     const file = await dbClient.db.collection('files')
-      .findOne({ _id: ObjectId(fileId), userId: ObjectId(userId) });
+      .findOne({ _id: ObjectId(fileId) });
     if (!file) {
       return response.status(400).send({ error: 'Not found' });
     }
