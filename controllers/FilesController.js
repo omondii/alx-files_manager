@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const redisClient = require('../utils/redis');
 const dbClient = require('../utils/db');
+const { PassThrough } = require('stream');
 
 class FilesController {
   /**
@@ -220,6 +221,9 @@ class FilesController {
       isPublic: docs.isPublic,
       parentId: docs.parentId,
     });
+  }
+  static async putUnpublish(request, response){
+    return
   }
 }
 
