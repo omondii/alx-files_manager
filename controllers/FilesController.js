@@ -182,6 +182,45 @@ class FilesController {
     }));
     return response.send(allFilesList)
   }
+  /**
+   * Should Set the isPublic to true on the file doc based on ID
+   */
+  static async putPublish(request, response){
+    const token = request.header('X-Token') || null;
+    if (!token) {
+      return response.status(401).send({ error: 'Unauthorized' });
+    }
+    const redisToken = await redisClient.get(`auth_${token}`);
+    if (!redisToken) {
+      return response.status(401).send({ error: 'Unauthorized' });
+    }
+
+    const userSearch = await dbClient.db.collection('users')
+      .findOne({ _id: ObjectId(redisToken) });
+    if (!userSearch) {
+      return response.status(401).send({ error: 'Unauthorized' });
+    }
+    const fileId = request.params.id || '';
+    var docs = await dbClient.db.collection('files')
+      .find({ userId: ObjectId(userSearch._id), _id: ObjectId(fileId)});
+    if (!docs){
+      return response.status(404).send({ error: 'Not found' });
+    }
+    docs.isPublic = true;
+    await dbClient.collection('files')
+      .update({ _id: ObjectId(idFile) }, { $set: { isPublic: true } });
+    docs = await dbClient.db.collection('files')
+      .findOne({ _id: ObjectId(fileId), userId: userSearch._id});
+
+    return response.send({
+      id: docs._id,
+      userId: docs.userId,
+      name: docs.name,
+      type: docs.type,
+      isPublic: docs.isPublic,
+      parentId: docs.parentId,
+    });
+  }
 }
 
 module.exports = FilesController;
