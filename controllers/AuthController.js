@@ -20,6 +20,9 @@ class AuthController {
     const email = credentials[0];
     const passwd = credentials[1];
 
+    if (!email || !passwd) {
+        return response.status(401).send({error: 'Unauthorized'});
+    }
     const hashedpwd = sha1(passwd);
 
     const searchUser = await dbClient.db.collection('users')
@@ -31,7 +34,7 @@ class AuthController {
     const key = `auth_${token}`;
 
     // Store to redis using the Key for 24hrs
-    await redisClient.set(key, searchUser._id.toString(), 'EX', 86400);
+    await redisClient.set(key, searchUser._id.toString(), 86400);
     return response.status(200).send({ token });
   }
 

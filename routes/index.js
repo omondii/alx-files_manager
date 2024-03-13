@@ -4,6 +4,7 @@
 const AppController = require('../controllers/AppController');
 const UsersController = require('../controllers/UsersController');
 const AuthController = require('../controllers/AuthController');
+const FilesController = require('../controllers/FilesController');
 
 const express = require('express');
 
@@ -18,6 +19,7 @@ const router = (app) => {
   route.get('/connect', (request, response) => AuthController.getConnect(request, response));
   route.get('disconnect', (request, response) => AuthController.getDisconnect(request, response));
   route.get('/users/me', (request, response) => UsersController.getMe(request, response));
+  route.post('/files', (request, response) => FilesController.postUpload(request, response));
 };
 
 module.exports = router;
