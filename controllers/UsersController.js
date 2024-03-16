@@ -30,7 +30,7 @@ class UsersController {
 
       return response.status(201).send({ id: result.insertedId, email: userEmail });
     }
-    return response.status(400).send({ error: 'Already Exist' });
+    return response.status(400).send({ error: 'Already exist' });
   }
 
   /**
