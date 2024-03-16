@@ -2,11 +2,17 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 
 import MongoClient from 'mongodb';
+import sha1 from 'sha1';
 
 chai.use(chaiHttp);
 
-describe('GET /stats', () => {
+describe('GET /users', () => {
     let testClientDb = null;
+    let initialUser = null;
+
+    const fctRandomString = () => {
+        return Math.random().toString(36).substring(2, 15);
+    }
 
     beforeEach(() => {
         const dbInfo = {
@@ -20,14 +26,12 @@ describe('GET /stats', () => {
             
                 await testClientDb.collection('users').deleteMany({})
 
-                // add 2 users
-                await testClientDb.collection('users').insertOne({ email: "me@me.com" })
-                await testClientDb.collection('users').insertOne({ email: "me2@me.com" })
-
-                // add 3 files
-                await testClientDb.collection('files').insertOne({ name: "file 1" })
-                await testClientDb.collection('files').insertOne({ name: "file 2" })
-                await testClientDb.collection('files').insertOne({ name: "file 3" })
+                // Add 1 user
+                initialUser = { 
+                    email: `${fctRandomString()}@me.com`,
+                    password: sha1(fctRandomString())
+                }
+                await testClientDb.collection('users').insertOne(initialUser);
                 
                 resolve();
             }); 
@@ -37,16 +41,30 @@ describe('GET /stats', () => {
     afterEach(() => {
     });
 
-    it('GET /stats exists', (done) => {
+    it('GET /users with email that already exists', (done) => {
+        const userParam = { 
+            email: initialUser.email,
+            password: `${fctRandomString()}` 
+        }
         chai.request('http://localhost:5000')
-            .get('/stats')
+            .post('/users')
+            .send(userParam)
             .end((err, res) => {
                 chai.expect(err).to.be.null;
-                chai.expect(res).to.have.status(200);
-                const bodyJson = res.body;
-                chai.expect(bodyJson.users).to.equal(2);
-                chai.expect(bodyJson.files).to.equal(3);
-                done();
+                chai.expect(res).to.have.status(400);
+                const resError = res.body.error;
+                chai.expect(resError).to.equal("Already exist");
+                
+                testClientDb.collection('users')
+                    .find({})
+                    .toArray((err, docs) => {
+                        chai.expect(err).to.be.null;
+                        chai.expect(docs.length).to.equal(1);
+                        const docUser = docs[0];
+                        chai.expect(docUser.email).to.equal(initialUser.email);
+                        chai.expect(docUser.password.toUpperCase()).to.equal(initialUser.password.toUpperCase());
+                        done();
+                    })
             });
     }).timeout(30000);
 });
