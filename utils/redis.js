@@ -2,7 +2,6 @@
  * Redis client
  */
 const redis = require('redis');
-const createClient = require('redis');
 const { promisify } = require('util');
 
 class RedisClient {

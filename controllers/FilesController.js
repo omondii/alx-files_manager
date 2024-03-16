@@ -199,7 +199,6 @@ class FilesController {
     if (!docs){
       return response.status(404).send({ error: 'Not found' });
     }
-    docs.isPublic = true;
     await dbClient.collection('files')
       .update({ _id: ObjectId(idFile) }, { $set: { isPublic: true } });
     docs = await dbClient.db.collection('files')
